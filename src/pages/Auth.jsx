@@ -1,9 +1,73 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import FloatingLabel from "react-bootstrap/FloatingLabel";
 import Form from "react-bootstrap/Form";
+import { LogUserApi, RegUserApi } from "../Services/AllApi";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import { authContext } from "../ContextApi/ContextApi";
+import Profile from "../components/Profile";
 
 function Auth() {
   const [authState, setAuthState] = useState(false);
+  const [userData, setUserData] = useState({
+    email: "",
+    username: "",
+    password: "",
+  });
+  const nav = useNavigate();
+
+  const { setAuthStatus } = useContext(authContext);
+
+  const handleReg = async () => {
+    console.log(userData);
+    const { username, email, password } = userData;
+    if (!username || !email || !password) {
+      toast.warning("Enter valid input");
+    } else {
+      // console.log("Sending to backend:", userData)
+      const response = await RegUserApi(userData);
+      console.log(response);
+      if (response.status === 201) {
+        toast.success("Registration Competed");
+        handleAuthState();
+        userData({
+          email: "",
+          username: "",
+          password: "",
+        });
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
+  const handleLogin = async () => {
+    const { email, password } = userData;
+    if ((!email, !password)) {
+      toast.warning("Enter valid inputs");
+    } else {
+      const response = await LogUserApi(userData);
+      console.log(response);
+      if (response.status === 200) {
+        setAuthStatus(true);
+        toast.success("Login success");
+        sessionStorage.setItem("token", response.data.token);
+        sessionStorage.setItem(
+          "userData",
+          JSON.stringify({
+            username: response.data.username,
+            github: response.data.github,
+            linkedin: response.data.linkedin,
+            profile: response.data.profile,
+          })
+        );
+        nav("/");
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
+  };
+
   const handleAuthState = () => {
     setAuthState(!authState);
   };
@@ -29,7 +93,14 @@ function Auth() {
                 label="Email address"
                 className="mb-3"
               >
-                <Form.Control type="email" placeholder="name@example.com" />
+                <Form.Control
+                  type="email"
+                  onChange={(e) => {
+                    setUserData({ ...userData, email: e.target.value });
+                  }}
+                  placeholder="name@example.com"
+                  value={userData.email}
+                />
               </FloatingLabel>
               {authState && (
                 <>
@@ -38,18 +109,36 @@ function Auth() {
                     label="user Name"
                     className="mb-3"
                   >
-                    <Form.Control type="text" placeholder="username..." />
+                    <Form.Control
+                      type="text"
+                      onChange={(e) => {
+                        setUserData({ ...userData, username: e.target.value });
+                      }}
+                      placeholder="username..."
+                      value={userData.username}
+                    />
                   </FloatingLabel>
                 </>
               )}
               <FloatingLabel controlId="floatingPassword" label="Password">
-                <Form.Control type="password" placeholder="Password" />
+                <Form.Control
+                  type="password"
+                  onChange={(e) => {
+                    setUserData({ ...userData, password: e.target.value });
+                  }}
+                  placeholder="Password"
+                  value={userData.password}
+                />
               </FloatingLabel>
               <div className="d-flex justify-content-between mt-5">
                 {authState ? (
-                  <button className="btn btn-success">Register</button>
+                  <button className="btn btn-success" onClick={handleReg}>
+                    Register
+                  </button>
                 ) : (
-                  <button className="btn btn-success">Login</button>
+                  <button className="btn btn-success" onClick={handleLogin}>
+                    Login
+                  </button>
                 )}
                 <button className="btn btn-link" onClick={handleAuthState}>
                   {authState ? "Already a user?" : "New User?"}

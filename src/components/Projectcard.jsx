@@ -3,8 +3,9 @@ import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import { useState } from "react";
 import Modal from "react-bootstrap/Modal";
+import base_url from "../Services/base_url";
 
-function Projectcard() {
+function Projectcard({project}) {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -36,27 +37,26 @@ function Projectcard() {
           <div className="row">
             <div className="col">
               <img
-                src="https://tse2.mm.bing.net/th?id=OIP.y_iP084zhHga4tTD2Ijt_QHaEK&pid=Api&P=0&h=180"
+                src={`${base_url}/projectimg/${project.image}`}
                 alt=""
                 className="img-fluid"
               />
             </div>
             <div className="col">
-              <h2>Project Title</h2>
+              <h2>{project.title}</h2>
               <p>
-                <span className="fw-bolder">Description</span>
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Dolorum, ex.
+                <span className="fw-bolder">Description :</span>
+                {project.description}
               </p>
               <p>
-                <span className="fw-bolder">languages : HTML,CSS,JS</span>
+                <span className="fw-bolder">languages : {project.language}</span>
               </p>
               <div className="d-flex justify-content-between">
-                <a href="">
-                  <i class="fa-brands fa-github"></i>
+                <a href={project.gitrepo}>
+                  <i className="fa-brands fa-github"></i>
                 </a>
-                <a href="">
-                  <i class="fa-solid fa-link"></i>
+                <a href={project.demo}>
+                  <i className="fa-solid fa-link"></i>
                 </a>
               </div>
             </div>
