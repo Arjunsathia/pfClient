@@ -1,0 +1,7 @@
+.custom-modal .modal-content {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}

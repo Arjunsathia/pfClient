@@ -1,5 +1,4 @@
-import React, { use, useState, useEffect, useContext } from "react";
-import { Nav } from "react-bootstrap";
+import React, { useState, useEffect, useContext } from "react";
 import { toast } from "react-toastify";
 import { updateprofileApi } from "../Services/AllApi";
 import { authContext } from "../ContextApi/ContextApi";
@@ -11,9 +10,6 @@ function Profile() {
   const nav = useNavigate();
 
   const [profileShow, setProfileShow] = useState(false);
-  const togglerProfile = () => {
-    setProfileShow(!profileShow);
-  };
   const [profileData, setProfileData] = useState({
     username: "",
     github: "",
@@ -22,140 +18,153 @@ function Profile() {
   });
   const [preview, setPreview] = useState("");
 
+  const togglerProfile = () => setProfileShow(!profileShow);
+
   useEffect(() => {
-    if (sessionStorage.getItem("userData")) {
-      const userData = JSON.parse(sessionStorage.getItem("userData"));
+    const userData = JSON.parse(sessionStorage.getItem("userData"));
+    if (userData) {
       setProfileData({ ...userData });
     }
   }, []);
 
   useEffect(() => {
-    if (profileData.profile.type) {
+    if (profileData.profile?.type) {
       setPreview(URL.createObjectURL(profileData.profile));
     } else {
       setPreview("");
     }
-  }, [profileData.profile.type]);
+  }, [profileData.profile]);
 
   const handleEdit = async () => {
-    console.log(profileData);
     const { username, github, linkedin, profile } = profileData;
     if (!username || !github || !linkedin || !profile) {
-      toast.error("Please fill all fields and select a profile image.");
+      return toast.error("Please fill all fields and select a profile image.");
+    }
+
+    const headers = {
+      Authorization: `Token ${sessionStorage.getItem("token")}`,
+      "Content-Type": profile?.type
+        ? "multipart/form-data"
+        : "application/json",
+    };
+
+    const response = await updateprofileApi(profileData, headers);
+
+    if (response.status === 200) {
+      toast.success("Profile updated successfully!");
+      sessionStorage.clear();
+      setAuthStatus(false);
+      nav("/");
     } else {
-      let header = {};
-      if (profile.type) {
-        header = {
-          Authorization: `Token ${sessionStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data",
-        };
-      } else {
-        header = {
-          Authorization: `Token ${sessionStorage.getItem("token")}`,
-          "Content-Type": "application/json",
-        };
-      }
-      // Call your API to update the profile here
-      const response = await updateprofileApi(profileData, header);
-      if (response.status === 200) {
-        toast.success("Profile updated successfully!");
-        nav("/");
-        sessionStorage.clear();
-        setAuthStatus(false);
-      } else {
-        toast.error("Failed to update profile");
-        console.log(response);
-      }
+      toast.error("Failed to update profile");
     }
   };
+
   return (
-    <>
-      <div className="container-fluid border border-2 border-info p-3">
-        <div className="d-flex justify-content-between">
-          <h3>Profile</h3>
-          <button className="btn border-0" onClick={togglerProfile}>
-            {profileShow ? (
-              <i className="fa-solid fa-toggle-on fa-xl "></i>
-            ) : (
-              <i className="fa-solid fa-toggle-off fa-xl "></i>
-            )}
-          </button>
-        </div>
-        {profileShow && (
-          <div className="w-100">
-            <div>
-              <label htmlFor="pf" className="d-flex justify-content-between">
-                <input
-                  onChange={(e) => {
-                    setProfileData({
-                      ...profileData,
-                      profile: e.target.files[0],
-                    });
-                  }}
-                  type="file"
-                  name=""
-                  id="pf"
-                  style={{ display: "none" }}
-                />
-                <img
-                  src={
-                    preview
-                      ? preview
-                      : profileData.profile
-                      ? `${base_url}/projectimg/${profileData.profile}`
-                      : "https://www.iconpacks.net/icons/1/free-user-icon-972-thumb.png"
-                  }
-                  alt=""
-                  className="img-fluid"
-                />
-              </label>
+    <div
+      className="rounded-4 p-4"
+      style={{
+        background: "rgba(255, 255, 255, 0.05)",
+        backdropFilter: "blur(10px)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        color: "#fff",
+        boxShadow: "0 0 10px rgba(0,0,0,0.2)",
+      }}
+    >
+<div className="d-flex justify-content-between align-items-center mb-2">
+  <h5 className="mb-0 text-light">Profile Settings</h5>
+  <button
+    className="btn btn-sm text-white border-0 shadow-none"
+    onClick={togglerProfile}
+    title="Toggle Profile"
+  >
+    <i
+      className={`fa-solid ${
+        profileShow ? "fa-toggle-on" : "fa-toggle-off"
+      } fa-xl`}
+    ></i>
+  </button>
+</div>
+
+
+      {profileShow && (
+        <div className="mt-3">
+          <div className="text-center mb-3">
+            <label htmlFor="pf" className="d-inline-block">
               <input
-                onChange={(e) => {
-                  setProfileData({
-                    ...profileData,
-                    username: e.target.value,
-                  });
-                }}
-                type="text"
-                placeholder="Username"
-                className="my-3 form-control"
-                defaultValue={profileData.username}
+                id="pf"
+                type="file"
+                style={{ display: "none" }}
+                onChange={(e) =>
+                  setProfileData({ ...profileData, profile: e.target.files[0] })
+                }
               />
-              <input
-                onChange={(e) => {
-                  setProfileData({
-                    ...profileData,
-                    github: e.target.value,
-                  });
+              <img
+                src={
+                  preview
+                    ? preview
+                    : profileData.profile
+                    ? `${base_url}/projectimg/${profileData.profile}`
+                    : "https://www.iconpacks.net/icons/1/free-user-icon-972-thumb.png"
+                }
+                alt="avatar"
+                className="rounded-circle shadow-lg"
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "cover",
+                  cursor: "pointer",
+                  border: "2px solid #fff",
                 }}
-                type="text"
-                placeholder="Git Link"
-                className="my-3 form-control"
-                defaultValue={profileData.github}
               />
-              <input
-                onChange={(e) => {
-                  setProfileData({
-                    ...profileData,
-                    linkedin: e.target.value,
-                  });
-                }}
-                type="text"
-                placeholder="LinkdIn"
-                className="my-3 form-control"
-                defaultValue={profileData.linkedin}
-              />
-            </div>
-            <div className="d-flex justify-content-between">
-              <button className="btn btn-success" onClick={handleEdit}>
-                Update
-              </button>
-              <button className="btn btn-danger">cancel / close</button>
-            </div>
+            </label>
           </div>
-        )}
-      </div>
-    </>
+
+          <input
+            type="text"
+            placeholder="Username"
+            className="form-control mb-2 bg-light text-dark border-light"
+            value={profileData.username}
+            onChange={(e) =>
+              setProfileData({ ...profileData, username: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="GitHub Link"
+            className="form-control mb-2 bg-light text-dark border-light"
+            value={profileData.github}
+            onChange={(e) =>
+              setProfileData({ ...profileData, github: e.target.value })
+            }
+          />
+          <input
+            type="text"
+            placeholder="LinkedIn Link"
+            className="form-control mb-3 bg-light text-dark border-light"
+            value={profileData.linkedin}
+            onChange={(e) =>
+              setProfileData({ ...profileData, linkedin: e.target.value })
+            }
+          />
+
+          <div className="d-flex gap-3">
+            <button
+              className="btn btn-success btn-sm w-50 me-1"
+              onClick={handleEdit}
+            >
+              Update
+            </button>
+            <button
+              className="btn btn-outline-danger btn-sm w-50 ms-1"
+              onClick={() => setProfileShow(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

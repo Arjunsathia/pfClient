@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
-import { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import base_url from "../Services/base_url";
 
-function Projectcard({project}) {
+function Projectcard({ project, onDelete, children }) {
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -13,60 +12,149 @@ function Projectcard({project}) {
 
   return (
     <>
-      <Card style={{ width: "18rem" }}>
+      <Card
+        className="border-0 rounded-4"
+        style={{
+          width: "100%",
+          cursor: "pointer",
+          background: "rgba(255, 255, 255, 0.05)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          color: "#fff",
+          transition: "transform 0.3s ease",
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.transform = "translateY(-5px)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.transform = "translateY(0px)")
+        }
+      >
         <Card.Img
           onClick={handleShow}
-          style={{ cursor: "pointer" }}
           variant="top"
-          src="https://tse2.mm.bing.net/th?id=OIP.y_iP084zhHga4tTD2Ijt_QHaEK&pid=Api&P=0&h=180"
+          src={
+            project.image
+              ? `${base_url}/projectimg/${project.image}`
+              : "https://via.placeholder.com/400x300?text=No+Image"
+          }
+          style={{
+            borderRadius: "0.75rem 0.75rem 0 0",
+            height: "200px",
+            objectFit: "cover",
+          }}
         />
-        <Card.Body>
-          <Card.Title>Blog</Card.Title>
+        <Card.Body onClick={handleShow}>
+          <Card.Title className="fw-semibold text-white text-truncate">
+            {project.title}
+          </Card.Title>
         </Card.Body>
+
+        {children && (
+          <div className="p-3 d-flex justify-content-between align-items-center">
+            {children}
+            {onDelete && (
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={() => onDelete(project._id)}
+              >
+                Delete
+              </Button>
+            )}
+          </div>
+        )}
       </Card>
+
       <Modal
         show={show}
         onHide={handleClose}
         backdrop="static"
         keyboard={false}
+        centered
+        dialogClassName="custom-modal"
       >
-        <Modal.Header closeButton>
-          <Modal.Title>Modal title</Modal.Title>
+        <Modal.Header
+          closeButton
+          closeVariant="white"
+          className="border-0 pb-1"
+          style={{
+            background: "rgba(255, 255, 255, 0.05)",
+            backdropFilter: "blur(12px)",
+            color: "#fff",
+          }}
+        >
+          <Modal.Title>{project.title}</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
-          <div className="row">
-            <div className="col">
+
+        <Modal.Body
+          style={{
+            background: "rgba(255, 255, 255, 0.05)",
+            backdropFilter: "blur(12px)",
+            color: "#fff",
+          }}
+          className="rounded-0 px-4 pt-3"
+        >
+          <div className="row flex-column flex-md-row g-3">
+            <div className="col-md-6">
               <img
-                src={`${base_url}/projectimg/${project.image}`}
-                alt=""
-                className="img-fluid"
+                src={
+                  project.image
+                    ? `${base_url}/projectimg/${project.image}`
+                    : "https://via.placeholder.com/400x300?text=No+Image"
+                }
+                alt="project"
+                className="img-fluid rounded"
               />
             </div>
-            <div className="col">
-              <h2>{project.title}</h2>
+            <div className="col-md-6">
+              <h4 className="fw-bold">{project.title}</h4>
               <p>
-                <span className="fw-bolder">Description :</span>
+                <span className="fw-semibold">Description:</span>{" "}
                 {project.description}
               </p>
               <p>
-                <span className="fw-bolder">languages : {project.language}</span>
+                <span className="fw-semibold">Languages:</span>{" "}
+                {project.language}
               </p>
-              <div className="d-flex justify-content-between">
-                <a href={project.gitrepo}>
-                  <i className="fa-brands fa-github"></i>
-                </a>
-                <a href={project.demo}>
-                  <i className="fa-solid fa-link"></i>
-                </a>
+              <div className="d-flex gap-3 mt-2">
+                {project.gitrepo && (
+                  <a
+                    href={project.gitrepo}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-info"
+                    style={{ fontSize: "1.2rem" }}
+                  >
+                    <i className="fa-brands fa-github"></i>
+                  </a>
+                )}
+                {project.demo && (
+                  <a
+                    href={project.demo}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-info"
+                    style={{ fontSize: "1.2rem" }}
+                  >
+                    <i className="fa-solid fa-link"></i>
+                  </a>
+                )}
               </div>
             </div>
           </div>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+
+        <Modal.Footer
+          className="border-0 pt-0"
+          style={{
+            background: "rgba(255, 255, 255, 0.05)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <Button variant="outline-light" onClick={handleClose}>
             Close
           </Button>
-          <Button variant="primary">Understood</Button>
         </Modal.Footer>
       </Modal>
     </>
